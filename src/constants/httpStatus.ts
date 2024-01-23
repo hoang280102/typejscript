@@ -6,6 +6,7 @@ const httpStatus = {
   UNPROCESSABLE_ENTITY: 422,
   UNAUTHORIZED: 401,
   NOT_FOUND: 404,
-  INTERNAL_SEVER_ERROR: 500
+  INTERNAL_SEVER_ERROR: 500,
+  FORBIDDEN: 403
 } as const
 export default httpStatus

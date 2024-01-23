@@ -1,9 +1,6 @@
 import bcrypt from 'bcrypt'
 export function hashPassword(password: string) {
   const saltRounds = 10
-  // const salt = bcrypt.genSaltSync(saltRounds)
-  // const hashPassword = bcrypt.hashSync(password, salt)
-  // return hashPassword
   return new Promise<string>((resolve, reject) => {
     bcrypt.genSalt(saltRounds, (err, salt) => {
       if (err) throw reject(err)
@@ -14,7 +11,7 @@ export function hashPassword(password: string) {
     })
   })
 }
-export function decodePassword(password: string, hashPassword: string) {
+export async function decodePassword(password: string, hashPassword: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     bcrypt.compare(password, hashPassword, (err, result) => {
       if (err) throw reject(err)

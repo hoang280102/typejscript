@@ -2,6 +2,7 @@ import { Collection, Db, MongoClient } from 'mongodb'
 import 'dotenv/config'
 import User from '~/models/schemas/Users.schemas'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
+import Follower from '~/models/schemas/Follower.schema'
 // console.log(process.env.USERNAME)
 const password = process.env.PASSWORD_DATABASE
 const username = process.env.USERNAME_DATABASE
@@ -35,6 +36,9 @@ class DatabaseService {
   }
   get refreshTokens(): Collection<RefreshToken> {
     return this.Db.collection(process.env.REFRESH_TOKEN_DATABASE as string)
+  }
+  get followers(): Collection<Follower> {
+    return this.Db.collection(process.env.FOLLOWERS_DATABASE as string)
   }
 }
 const databaseService = new DatabaseService()
