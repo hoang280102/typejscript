@@ -13,6 +13,7 @@ import {
 } from './../models/requests/User.requests'
 import { Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
+import { access } from 'fs'
 import { pick } from 'lodash'
 // import { result } from 'lodash'
 import { ObjectId } from 'mongodb'
@@ -23,6 +24,7 @@ import { RegisterRequestBody } from '~/models/requests/User.requests'
 import User from '~/models/schemas/Users.schemas'
 import databaseService from '~/services/database.services'
 import usersService from '~/services/users.services'
+import 'dotenv/config'
 export const loginController = async (req: Request<ParamsDictionary, any, LoginReqBody>, res: Response) => {
   const user = req.user as User
   // console.log(user)
@@ -30,6 +32,21 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
   // console.log(user_id)
   const result = await usersService.login({ user_id: user_id.toString(), verify: user.verify })
   res.json({ message: usersMessages.LOGIN_SUCCESS, result })
+}
+
+export const loginGoogleController = async (req: Request, res: Response) => {
+  // console.log(req.url)
+  const { code } = req.query
+  const result = await usersService.oauth(code as string)
+  const urlRedirect = `${process.env.CLIENT_REDIRECT_URL_CALLBACK}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}&verify=${result.verify}`
+  return res.redirect(urlRedirect)
+  // res.json({
+  //   message: usersMessages.LOGIN_SUCCESS,
+  //   result: {
+  //     access_token: result.access_token,
+  //     refresh_token: result.refresh_token
+  //   }
+  // })
 }
 
 export const registerController = async (req: Request<ParamsDictionary, any, RegisterRequestBody>, res: Response) => {
