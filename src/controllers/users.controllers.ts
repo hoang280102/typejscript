@@ -34,10 +34,10 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
   res.json({ message: usersMessages.LOGIN_SUCCESS, result })
 }
 
-export const loginGoogleController = async (req: Request, res: Response) => {
+export const loginGoogleControllers = async (req: Request, res: Response) => {
   // console.log(req.url)
   const { code } = req.query
-  const result = await usersService.oauth(code as string)
+  const result = await usersService.Oauth(code as string)
   const urlRedirect = `${process.env.CLIENT_REDIRECT_URL_CALLBACK}?access_token=${result.access_token}&refresh_token=${result.refresh_token}&new_user=${result.newUser}&verify=${result.verify}`
   return res.redirect(urlRedirect)
   // res.json({

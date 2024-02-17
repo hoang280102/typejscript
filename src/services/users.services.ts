@@ -289,7 +289,7 @@ class UsersService {
       message: usersMessages.CHANGE_PASSWORD_SUCCESS
     }
   }
-  private async getOauthGoogleToken(code: string) {
+  private async GetOauthGoogleToken(code: string) {
     const body = {
       code,
       client_id: process.env.GOOGLE_CLIENT_ID,
@@ -305,7 +305,7 @@ class UsersService {
       id_token: string
     }
   }
-  private async getGoogleUserInfo(access_token: string, id_token: string) {
+  private async GetGoogleUserInfo(access_token: string, id_token: string) {
     const { data } = await axios.get('https://www.googleapis.com/oauth2/v1/userinfo', {
       params: {
         access_token,
@@ -324,7 +324,7 @@ class UsersService {
       locale: string
     }
   }
-  async oauth(code: string) {
+  async Oauth(code: string) {
     const { id_token, access_token } = await this.getOauthGoogleToken(code)
     const userInfo = await this.getGoogleUserInfo(access_token, id_token)
     if (!userInfo.verified_email) {
