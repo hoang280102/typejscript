@@ -175,7 +175,7 @@ export const loginValidator = validate(
             }
 
             const result = await decodePassword(req.body.password, user.password)
-
+            // console.log(result)
             if (!result) {
               throw new ErrorWithStatus({
                 message: usersMessages.PASSWORD_IS_WRONG,
