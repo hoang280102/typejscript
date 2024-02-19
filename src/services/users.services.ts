@@ -325,8 +325,8 @@ class UsersService {
     }
   }
   async Oauth(code: string) {
-    const { id_token, access_token } = await this.getOauthGoogleToken(code)
-    const userInfo = await this.getGoogleUserInfo(access_token, id_token)
+    const { id_token, access_token } = await this.GetOauthGoogleToken(code)
+    const userInfo = await this.GetGoogleUserInfo(access_token, id_token)
     if (!userInfo.verified_email) {
       throw new ErrorWithStatus({
         message: usersMessages.GMAIL_IS_NOT_VERIFY,
