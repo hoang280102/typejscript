@@ -11,6 +11,7 @@ import {
   getProfileController,
   loginController,
   logoutController,
+  refreshTokenController,
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
@@ -34,7 +35,28 @@ import {
 } from '~/middlewares/users.middlewares'
 const usersRouters = Router()
 
+/**
+ * @swagger
+ * /users/login:
+ *  post:
+ *   tags:
+ *    - 'User'
+ *   description: đăng nhập vào hệ thống
+ *   requestBody:
+ *    description: thong tin dang nhap
+ */
+
 usersRouters.post('/login', loginValidator, wrapRequestHandler(loginController))
+/**
+ * @swagger
+ * /users/register:
+ *  post:
+ *   tags:
+ *    - 'User'
+ *   description: đăng nhập vào hệ thống
+ *   requestBody:
+ *    description: thong tin dang nhap
+ */
 usersRouters.post('/register', registerValidator, wrapRequestHandler(registerController))
 usersRouters.post('/logout', accessTokenValidator, refereshTokenValidator, wrapRequestHandler(logoutController))
 usersRouters.post('/verify-email', emailVerifyTokenValidator, wrapRequestHandler(EmailVerifyValidatorController))
@@ -80,4 +102,5 @@ usersRouters.put(
   changPasswordValidator,
   wrapRequestHandler(changePasswordController)
 )
+usersRouters.post('/refresh-token', refereshTokenValidator, wrapRequestHandler(refreshTokenController))
 export default usersRouters

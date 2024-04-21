@@ -9,7 +9,8 @@ import {
   VerifyForgotPasswordReqBody,
   FollowReqBody,
   UnFollowReqParams,
-  ChangePasswordReqBody
+  ChangePasswordReqBody,
+  RefreshReqBody
 } from './../models/requests/User.requests'
 import { Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
@@ -29,6 +30,7 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
   const user = req.user as User
   // console.log(user)
   const user_id = user._id
+  console.log(user.verify)
   // console.log(user_id)
   const result = await usersService.login({ user_id: user_id.toString(), verify: user.verify })
   res.json({ message: usersMessages.LOGIN_SUCCESS, result })
@@ -99,7 +101,7 @@ export const resendVerifyEmailController = async (req: Request, res: Response) =
   if (user.verify === UserVerifyStatus.Verified) {
     return res.json({ message: usersMessages.EMAIL_ALREADY_VERIFIED_BEFORE })
   }
-  const result = await usersService.resendVerifyEmail(user_id)
+  const result = await usersService.resendVerifyEmail(user_id, user.email)
   return res.json({ result })
 }
 
@@ -107,9 +109,9 @@ export const forgotPasswordControllers = async (
   req: Request<ParamsDictionary, any, ForgotPasswordReqBody>,
   res: Response
 ) => {
-  const { _id, verify } = req.user as User
+  const { _id, verify, email } = req.user as User
 
-  const result = await usersService.ForgotPasswordToken({ user_id: _id.toString(), verify })
+  const result = await usersService.ForgotPasswordToken({ email, user_id: _id.toString(), verify })
   return res.json(result)
 }
 export const VerifyForgotPasswordToken = async (
@@ -180,4 +182,10 @@ export const changePasswordController = async (
   const { password } = req.body
   const result = await usersService.changePassword(user_id, password)
   return res.json({ result })
+}
+export const refreshTokenController = async (req: Request<ParamsDictionary, any, RefreshReqBody>, res: Response) => {
+  const { refresh_token } = req.body
+  const { user_id, verify, exp } = req.decoded_refresh_token as TokenPayLoad
+  const result = await usersService.refreshToken({ user_id, verify, refresh_token, exp })
+  return res.status(httpStatus.Ok).json({ message: usersMessages.REFRESH_TOKEN_SUCCESS, result })
 }
