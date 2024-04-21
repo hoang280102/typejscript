@@ -1,4 +1,4 @@
-import { NextFunction, Request } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { validate } from '~/utils/validation'
 //middleware login
 import { ParamSchema, checkSchema } from 'express-validator'
@@ -294,7 +294,7 @@ export const accessTokenValidator = validate(
         trim: true,
         custom: {
           options: async (value: string, { req }) => {
-            const access_token = (value || '').split(' ')[1]
+            const access_token = value.split(' ')[1]
             if (!access_token)
               throw new ErrorWithStatus({
                 message: usersMessages.ACCESS_TOKEN_IS_REQUIRED,
@@ -314,7 +314,6 @@ export const accessTokenValidator = validate(
                 status: httpStatus.UNAUTHORIZED
               })
             }
-
             return true
           }
         }
@@ -689,3 +688,12 @@ export const changPasswordValidator = validate(
     confirm_password: confirmPasswordSchema
   })
 )
+export const isUserLoggedInValidator = (middleware: (req: Request, res: Response, next: NextFunction) => void) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (req.headers.authorization) {
+      return middleware(req, res, next)
+      // req.header khasc voi req.headers(phân biệt  chữ hoa chữ thường)
+    }
+    next()
+  }
+}

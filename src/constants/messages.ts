@@ -63,5 +63,21 @@ export const usersMessages = {
   PASSWORD_IS_WRONG: 'password is wrong',
   GMAIL_IS_NOT_VERIFY: 'mail is not verified',
   UPLOAD_IMAGE_SUCCESS: 'upload image successfully',
-  UPLOAD_VIDEO_SUCCESS: 'upload video successfully'
+  UPLOAD_VIDEO_SUCCESS: 'upload video successfully',
+  REFRESH_TOKEN_SUCCESS: 'refresh token successfully'
 } as const
+
+export const tweetsMessages = {
+  INVALID_TYPE: 'invalid type',
+  INVALID_AUDIENCE: 'invalid audience',
+  PARENT_ID_MUST_BE_A_VALID_TWEET_ID: 'parent id must be a valid tweet id',
+  PARENT_ID_MUST_BE_NULL: 'parent id must be null',
+  CONTENT_MUST_BE_A_NOT_EMPTY_STRING: 'content must be a not empty string',
+  CONTENT_MUST_BE_EMPTY_STRING: 'content must be empty string',
+  HASHTAGS_MUST_BE_AN_ARRAY_OF_STRINGS: 'has_tags must be an array of strings',
+  MENTIONS_MUST_BE_AN_ARRAY_OF_USER_ID: 'mentions must be an array of user id',
+  MEDIAS_MUST_BE_AN_ARRAY_OF_MEDIA_OBJECT: 'media object must be an array of media objects',
+  INVALID_TWEET_ID: 'tweet id must be valid id',
+  TWEET_NOT_FOUND: 'tweet not found',
+  TWEET_IS_NOT_PUBLIC: 'tweet is not public'
+}

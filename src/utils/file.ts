@@ -47,13 +47,22 @@ export const handleUploadImage = async (req: Request) => {
 }
 
 export const handleUploadVideo = async (req: Request) => {
+  const nanoId = (await import('nanoid')).nanoid
+  const idName = nanoId()
   const form = formidable({
     uploadDir: UPLOAD_VIDEO_TEMP_DIR,
     maxFields: 1,
-    maxFieldsSize: 50 * 1024 * 1024,
+    maxFieldsSize: 200 * 1024 * 1024,
     keepExtensions: true,
     filter: function ({ name, originalFilename, mimetype }) {
-      return true
+      const valid = name === 'video' && Boolean(mimetype?.includes('mp4'))
+      if (!valid) {
+        form.emit('error' as any, new Error('File type is not valid') as any)
+      }
+      return valid
+    },
+    filename: function () {
+      return idName
     }
   })
   return new Promise<File[]>((resolve, reject) => {
@@ -62,7 +71,6 @@ export const handleUploadVideo = async (req: Request) => {
         return reject(err)
       }
       resolve(files.video as File[])
-      // console.log(files.video)
     })
   })
 }
@@ -71,4 +79,8 @@ export const getNameFromFullName = (name: string) => {
   const nameArr = name.split('.')
   nameArr.pop()
   return nameArr.join('')
+}
+export const getNameType = (name: string) => {
+  const nameArr = name.split('.')
+  return nameArr.pop()
 }

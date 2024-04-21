@@ -3,7 +3,7 @@ import User from '~/models/schemas/Users.schemas'
 import databaseService from './database.services'
 import { RegisterRequestBody, UpdateMeReqBody } from '~/models/requests/User.requests'
 import { hashPassword } from '~/utils/bcrypt'
-import { signToken } from '~/utils/jwt'
+import { signToken, verifyToken } from '~/utils/jwt'
 import { TokenType, UserVerifyStatus } from '~/constants/enum'
 import 'dotenv/config'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
@@ -12,6 +12,7 @@ import { usersMessages } from '~/constants/messages'
 import Follower from '~/models/schemas/Follower.schema'
 import axios from 'axios'
 import httpStatus from '~/constants/httpStatus'
+import { sendForgotPasswordEmail, sendVeriryEmailEdit } from '~/utils/send-email'
 
 class UsersService {
   private signAccessToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
@@ -27,7 +28,18 @@ class UsersService {
       }
     })
   }
-  private signRefreshToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
+  private signRefreshToken({ user_id, verify, exp }: { user_id: string; verify: UserVerifyStatus; exp?: number }) {
+    if (exp) {
+      return signToken({
+        payload: {
+          user_id,
+          token_type: TokenType.RefreshToken,
+          verify,
+          exp
+        },
+        privatekey: process.env.JWT_SECRET_KEY_REFRESH_TOKEN as string
+      })
+    }
     return signToken({
       payload: {
         user_id,
@@ -72,6 +84,9 @@ class UsersService {
   private signAccessAndRefreshToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
     return Promise.all([this.signAccessToken({ user_id, verify }), this.signRefreshToken({ user_id, verify })])
   }
+  private decodeRefreshToken(refresh_token: string) {
+    return verifyToken({ token: refresh_token, secret_public_key: process.env.JWT_SECRET_KEY_REFRESH_TOKEN as string })
+  }
   async register(payload: RegisterRequestBody) {
     const user_id = new ObjectId()
     const email_verify_token = await this.signEmailVerifyToken({
@@ -94,9 +109,12 @@ class UsersService {
       user_id: user_id.toString(),
       verify: UserVerifyStatus.Unverified
     })
+    const { iat, exp } = await this.decodeRefreshToken(refresh_token)
     await databaseService.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token, iat, exp })
     )
+    await sendVeriryEmailEdit(payload.email, email_verify_token)
+
     return {
       access_token,
       refresh_token
@@ -111,8 +129,10 @@ class UsersService {
       user_id,
       verify
     })
+    const { iat, exp } = await this.decodeRefreshToken(refresh_token)
+
     await databaseService.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token, iat, exp })
     )
     return { access_token, refresh_token }
   }
@@ -141,16 +161,19 @@ class UsersService {
       )
     ])
     const [access_token, refresh_token] = token
+    const { iat, exp } = await this.decodeRefreshToken(refresh_token)
+
     await databaseService.refreshTokens.insertOne(
-      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token, iat, exp })
     )
     return {
       access_token,
       refresh_token
     }
   }
-  async resendVerifyEmail(user_id: string) {
+  async resendVerifyEmail(user_id: string, email: string) {
     const email_verify_token = await this.signEmailVerifyToken({ user_id, verify: UserVerifyStatus.Unverified })
+    await sendVeriryEmailEdit(email, email_verify_token)
     await databaseService.users.updateOne(
       { _id: new ObjectId(user_id) },
       {
@@ -165,7 +188,7 @@ class UsersService {
     return { message: usersMessages.RESEND_VERIFY_EMAIL_SUCCESS }
   }
 
-  async ForgotPasswordToken({ user_id, verify }: { user_id: string; verify: UserVerifyStatus }) {
+  async ForgotPasswordToken({ email, user_id, verify }: { email: string; user_id: string; verify: UserVerifyStatus }) {
     const forgot_password_token = await this.signForgotPasswordToken({ user_id, verify })
     await databaseService.users.updateOne(
       { _id: new ObjectId(user_id) },
@@ -178,7 +201,7 @@ class UsersService {
         }
       }
     )
-
+    await sendForgotPasswordEmail(email, forgot_password_token)
     return { message: usersMessages.CHECK_EMAIL_TO_RESET_PASSWORD_SUCCESS }
   }
 
@@ -339,8 +362,10 @@ class UsersService {
         user_id: user._id.toString(),
         verify: user.verify
       })
+      const { iat, exp } = await this.decodeRefreshToken(refresh_token)
+
       await databaseService.refreshTokens.insertOne(
-        new RefreshToken({ user_id: new ObjectId(user._id.toString()), token: refresh_token })
+        new RefreshToken({ user_id: new ObjectId(user._id.toString()), token: refresh_token, iat, exp })
       )
       return {
         access_token,
@@ -363,6 +388,37 @@ class UsersService {
         newUser: 1,
         verify: UserVerifyStatus.Unverified
       }
+    }
+  }
+  async refreshToken({
+    user_id,
+    verify,
+    refresh_token,
+    exp
+  }: {
+    user_id: string
+    verify: UserVerifyStatus
+    refresh_token: string
+    exp: number
+  }) {
+    const [new_access_token, new_refresh_token] = await Promise.all([
+      this.signAccessToken({ user_id, verify }),
+      this.signRefreshToken({ user_id, verify, exp }),
+      databaseService.refreshTokens.deleteOne({ token: refresh_token })
+    ])
+    const decoded_refresh_token = await this.decodeRefreshToken(new_access_token)
+
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({
+        user_id: new ObjectId(user_id),
+        token: new_refresh_token,
+        iat: decoded_refresh_token.iat,
+        exp: decoded_refresh_token.exp
+      })
+    )
+    return {
+      access_token: new_access_token,
+      refresh_token: new_refresh_token
     }
   }
 }

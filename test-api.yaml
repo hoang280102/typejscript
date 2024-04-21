@@ -1,0 +1,163 @@
+openapi: 3.0.3
+info:
+  title: Swagger Petstore - OpenAPI 3.0
+  description: |-
+    This is a sample Pet Store Server based on the OpenAPI 3.0 specification.  You can find out more about
+    Swagger at [https://swagger.io](https://swagger.io). In the third iteration of the pet store, we've switched to the design first approach!
+    You can now help us improve the API whether it's by making changes to the definition itself or to the code.
+    That way, with time, we can improve the API in general, and expose some of the new features in OAS3.
+
+    _If you're looking for the Swagger 2.0/OAS 2.0 version of Petstore, then click [here](https://editor.swagger.io/?url=https://petstore.swagger.io/v2/swagger.yaml). Alternatively, you can load via the `Edit > Load Petstore OAS 2.0` menu option!_
+
+    Some useful links:
+    - [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)
+    - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.11
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: http://localhost:3000
+    description: Access to Petstore orders
+
+tags:
+  - name: users
+    description: Cac API lien quan den user
+paths:
+  /users/login:
+    post:
+      tags:
+        - 'users'
+      summary: đăng nhập
+      description: đăng nhập vào hệ thống
+      operationId: login user
+      requestBody:
+        description: thông tin đăng nhập
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginBody'
+        required: true
+      responses:
+        '200':
+          description: Đăng nhập thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: login success
+                  result:
+                    $ref: '#/components/schemas/SuccessAuthentication'
+        '422':
+          description: Invalid input
+  /users/get-me:
+    get:
+      tags:
+        - 'users'
+      summary: lấy thông tin user
+      description: lấy thông tin user
+      operationId: getMe
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: lấy thông tin user thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+components:
+  schemas:
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          example: admin@example.com
+        password:
+          type: string
+          example: Admin123@
+    SuccessAuthentication:
+      type: object
+      properties:
+        message:
+          type: string
+          example: login success
+        result:
+          type: object
+          properties:
+            access_ token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjViMTM1OTYzYjRmNDMwMzY5YmI3NWU2IiwidG9rZW5fdHlwZSI6MCwidmVyaWZ5IjoxLCJpYXQiOjE3MDg0NDIxMDUsImV4cCI6MTcwODUyODUwNX0.9gD2gsR7sw_wB_gTYnu0j1W1dlsqe_CcwsLlN-2wDMY
+            refresh_token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjViMTM1OTYzYjRmNDMwMzY5YmI3NWU2IiwidG9rZW5fdHlwZSI6MSwidmVyaWZ5IjoxLCJpYXQiOjE3MDg0NDIxMDUsImV4cCI6MTcwOTA0NjkwNX0.YBaE4Jh1gIgxEDJNi-kU06JjuT0gskf4ucNZKdi69TU
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: MongoId
+          example: 65b135963b4f430369bb75e6
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          example: john@example.com
+        date_of_birth:
+          type: string
+          format: ISO8601
+          example: 2023-12-28T16:50:56.628Z
+        created_at:
+          type: string
+          format: date-time
+          example: 2024-01-24T16:06:46.251Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2024-01-24T16:06:46.251Z
+        verify:
+          $ref: '#/components/schemas/UserVerifyStatus'
+        twitter_circle:
+          type: array
+          items:
+            type: string
+            format: MongoId
+          example:
+        bio:
+          type: string
+          example: hello
+        location:
+          type: string
+          example: 'Ha Noi ,Ha Nam'
+        website:
+          type: string
+          example: 'www.google.com`'
+        username:
+          type: string
+          example: 'avatar'
+        avatar:
+          type: string
+          example: 'httpp:localhost:8080/images/avatar.jpg'
+        cover_photo:
+          type: string
+          example: 'httpp:localhost:8080/images/avatar.jpg'
+    UserVerifyStatus:
+      type: string
+      enum: [Unverified, Verified, Banned]
+      example: 1
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

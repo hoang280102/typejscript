@@ -3,6 +3,10 @@ import 'dotenv/config'
 import User from '~/models/schemas/Users.schemas'
 import RefreshToken from '~/models/schemas/RefreshToken.schema'
 import Follower from '~/models/schemas/Follower.schema'
+import Twitter from '~/models/schemas/Tweet.schema'
+import Hashtag from '~/models/schemas/Hashtag.schema'
+import { Bookmark } from '~/models/schemas/Bookmark.schema'
+import { Like } from '~/models/schemas/Like.schema'
 // console.log(process.env.USERNAME)
 const password = process.env.PASSWORD_DATABASE
 const username = process.env.USERNAME_DATABASE
@@ -31,6 +35,11 @@ class DatabaseService {
     //   await this.client.close()
     // }
   }
+  indexUsers() {
+    this.users.createIndex({ email: 1 }, { unique: true })
+    this.users.createIndex({ email: 1, password: 1 })
+    this.users.createIndex({ username: 1 }, { unique: true })
+  }
   get users(): Collection<User> {
     return this.Db.collection(process.env.COLLECTION_DATABASE as string)
   }
@@ -39,6 +48,18 @@ class DatabaseService {
   }
   get followers(): Collection<Follower> {
     return this.Db.collection(process.env.FOLLOWERS_DATABASE as string)
+  }
+  get tweets(): Collection<Twitter> {
+    return this.Db.collection(process.env.TWEETS_DATABASE as string)
+  }
+  get hashtags(): Collection<Hashtag> {
+    return this.Db.collection(process.env.HASHTAG_DATABASE as string)
+  }
+  get bookmarks(): Collection<Bookmark> {
+    return this.Db.collection(process.env.BOOKMARK_DATABASE as string)
+  }
+  get like(): Collection<Like> {
+    return this.Db.collection(process.env.LIKE_DATABASE as string)
   }
 }
 const databaseService = new DatabaseService()
